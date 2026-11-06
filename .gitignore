@@ -1,5 +1,23 @@
+# Visual Studio
 .vs/
-bin/
-obj/
 *.user
 *.suo
+*.sln.docstates
+
+# Build output (C# and C++/CLI)
+bin/
+obj/
+x64/
+Debug/
+Release/
+*.pch
+*.obj
+*.pdb
+*.ilk
+*.idb
+*.exe
+*.tlog
+*.recipe
+*.log
+*.dt.*.json
+*.dt.module.json.command

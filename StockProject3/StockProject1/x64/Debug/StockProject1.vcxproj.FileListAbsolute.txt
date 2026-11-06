@@ -1,7 +1,0 @@
-C:\Users\Westley Yarlott\source\repos\StockProject1\StockProject1\x64\Debug\StockProject1.vcxproj.AssemblyReference.cache
-C:\Users\Westley Yarlott\source\repos\StockProject1\StockProject1\x64\Debug\StockProject1.FormMain.resources
-C:\Users\Westley Yarlott\source\repos\StockProject1\StockProject1\x64\Debug\StockProject1.vcxproj.GenerateResource.cache
-C:\Users\Westley Yarlott\source\repos\StockProject3\StockProject1\x64\Debug\StockProject1.vcxproj.AssemblyReference.cache
-C:\Users\Westley Yarlott\source\repos\StockProject3\StockProject1\x64\Debug\StockProject1.FormMain.resources
-C:\Users\Westley Yarlott\source\repos\StockProject3\StockProject1\x64\Debug\StockProject1.FormSelector.resources
-C:\Users\Westley Yarlott\source\repos\StockProject3\StockProject1\x64\Debug\StockProject1.vcxproj.GenerateResource.cache
