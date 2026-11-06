@@ -1,0 +1,14 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\westley yarlott\\source\\repos\\stockproject3\\stockproject1\\formmain.h",
+        "ProvidedModule": "",
+        "Includes": [
+            "c:\\users\\westley yarlott\\source\\repos\\stockproject3\\stockproject1\\acandlestick.h",
+            "c:\\users\\westley yarlott\\source\\repos\\stockproject3\\stockproject1\\candlestickutilities.h",
+            "c:\\users\\westley yarlott\\source\\repos\\stockproject3\\stockproject1\\asmartcandlestick.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

@@ -1,0 +1,6 @@
+﻿  CppCLR_WinFormsProject.cpp
+  FormMain.cpp
+  FormSelector.cpp
+  Generating Code...
+  aCandlestick.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
+  StockProject1.vcxproj -> C:\Users\Westley Yarlott\source\repos\StockProject3\x64\Debug\StockProject1.exe
