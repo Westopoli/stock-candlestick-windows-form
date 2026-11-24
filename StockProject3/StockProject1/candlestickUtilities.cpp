@@ -77,3 +77,56 @@ System::Collections::Generic::List<aSmartCandlestick^>^ candlestickUtilities::bu
 
 	return smartList;
 }
+
+// finds the peak or valley candle closest to the mouse: nearest by candle number first, nearest by price when two are equally close
+aSmartCandlestick^ candlestickUtilities::findNearestExtreme(System::Collections::Generic::List<aSmartCandlestick^>^ candles, double indexPosition, double price, extremeKind% kindOut)
+{
+	aSmartCandlestick^ best = nullptr;
+	double bestDistance = System::Double::MaxValue;
+	double bestGap = System::Double::MaxValue;
+
+	for each (aSmartCandlestick^ candle in candles)
+	{
+		// peakValue and valleyValue are NaN on candles that are not a peak or valley
+		bool isPeak = !System::Double::IsNaN(candle->peakValue);
+		bool isValley = !System::Double::IsNaN(candle->valleyValue);
+		if (!isPeak && !isValley)
+		{
+			continue;
+		}
+
+		// how far the mouse price is from this candle's peak and from its valley, a kind this candle does not have is treated as infinitely far
+		double peakGap = System::Double::MaxValue;
+		if (isPeak)
+		{
+			peakGap = System::Math::Abs(candle->peakValue - price);
+		}
+		double valleyGap = System::Double::MaxValue;
+		if (isValley)
+		{
+			valleyGap = System::Math::Abs(candle->valleyValue - price);
+		}
+
+		// a candle that is both a peak and a valley counts as whichever is nearer the mouse price, and a tie goes to the peak
+		extremeKind candleKind = extremeKind::Peak;
+		double gap = peakGap;
+		if (valleyGap < peakGap)
+		{
+			candleKind = extremeKind::Valley;
+			gap = valleyGap;
+		}
+
+		// how many candles away the mouse is
+		double distance = System::Math::Abs(candle->index - indexPosition);
+
+		// keep this candle if it is closer by candle number, or equally close and nearer by price
+		if (distance < bestDistance || (distance == bestDistance && gap < bestGap))
+		{
+			best = candle;
+			bestDistance = distance;
+			bestGap = gap;
+			kindOut = candleKind;
+		}
+	}
+	return best;
+}

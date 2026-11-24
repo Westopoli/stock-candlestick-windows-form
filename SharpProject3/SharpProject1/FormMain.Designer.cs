@@ -45,7 +45,9 @@ namespace SharpProject1
             this.label2 = new System.Windows.Forms.Label();
             this.canldestickDataGridView = new System.Windows.Forms.DataGridView();
             this.redisplayButton = new System.Windows.Forms.Button();
-            this.chartStockData = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.textBoxTouches = new System.Windows.Forms.TextBox();
+            this.labelTouches = new System.Windows.Forms.Label();
+            this.chartStockData =new System.Windows.Forms.DataVisualization.Charting.Chart();
             ((System.ComponentModel.ISupportInitialize)(this.canldestickDataGridView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chartStockData)).BeginInit();
             this.SuspendLayout();
@@ -138,6 +140,24 @@ namespace SharpProject1
             this.redisplayButton.UseVisualStyleBackColor = true;
             this.redisplayButton.Click += new System.EventHandler(this.button1_Click);
             //
+            // textBoxTouches
+            //
+            this.textBoxTouches.Location = new System.Drawing.Point(1100, 585);
+            this.textBoxTouches.Name = "textBoxTouches";
+            this.textBoxTouches.ReadOnly = true;
+            this.textBoxTouches.Size = new System.Drawing.Size(100, 20);
+            this.textBoxTouches.TabIndex = 8;
+            this.textBoxTouches.Text = "0";
+            //
+            // labelTouches
+            //
+            this.labelTouches.AutoSize = true;
+            this.labelTouches.Location = new System.Drawing.Point(1100, 560);
+            this.labelTouches.Name = "labelTouches";
+            this.labelTouches.Size = new System.Drawing.Size(47, 13);
+            this.labelTouches.TabIndex = 9;
+            this.labelTouches.Text = "Touches";
+            //
             // chartStockData
             //
             chartArea1.AxisY.IsStartedFromZero = false;
@@ -177,7 +197,7 @@ namespace SharpProject1
             series3.IsXValueIndexed = true;
             series3.Legend = "Legend1";
             series3.MarkerBorderWidth = 8;
-            series3.MarkerColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
+            series3.MarkerColor = System.Drawing.Color.Yellow;
             series3.MarkerStyle = System.Windows.Forms.DataVisualization.Charting.MarkerStyle.Circle;
             series3.Name = "Dots";
             series4.ChartArea = "ChartStockData";
@@ -195,12 +215,19 @@ namespace SharpProject1
             this.chartStockData.Size = new System.Drawing.Size(1284, 452);
             this.chartStockData.TabIndex = 7;
             this.chartStockData.Text = "chart1";
+            this.chartStockData.Click += new System.EventHandler(this.chartStockData_Click);
+            this.chartStockData.MouseDown += new System.Windows.Forms.MouseEventHandler(this.chartStockData_MouseDown);
+            this.chartStockData.MouseMove += new System.Windows.Forms.MouseEventHandler(this.chartStockData_MouseMove);
+            this.chartStockData.MouseUp += new System.Windows.Forms.MouseEventHandler(this.chartStockData_MouseUp);
+            this.chartStockData.Paint += new System.Windows.Forms.PaintEventHandler(this.FormMain_Paint);
             //
             // FormMain
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1284, 677);
+            this.Controls.Add(this.labelTouches);
+            this.Controls.Add(this.textBoxTouches);
             this.Controls.Add(this.chartStockData);
             this.Controls.Add(this.redisplayButton);
             this.Controls.Add(this.canldestickDataGridView);
@@ -226,6 +253,8 @@ namespace SharpProject1
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.DataGridView canldestickDataGridView;
         private System.Windows.Forms.Button redisplayButton;
+        private System.Windows.Forms.TextBox textBoxTouches;
+        private System.Windows.Forms.Label labelTouches;
         private System.Windows.Forms.DataVisualization.Charting.Chart chartStockData;
     }
 }

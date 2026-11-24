@@ -11,14 +11,19 @@ ref class aSmartCandlestick : public aCandlestick
 		property double peakValue;
 		property double valleyValue;
 
-	// default constructor
+	/// <summary>
+	/// default constructor
+	/// </summary>
 	aSmartCandlestick() : aCandlestick()
 	{
 		index = 0;
 		peakValue = Double::NaN;
 		valleyValue = Double::NaN;
 	}
-	// constructor that takes an existing regular aCandlestick and initializes the aSmartCandlestick with its values
+	/// <summary>
+	/// constructor that takes an existing regular aCandlestick and initializes the aSmartCandlestick with its values
+	/// </summary>
+	/// <param name="candlestick">the regular candlestick to copy the values from</param>
 	aSmartCandlestick(aCandlestick^ candlestick) : aCandlestick()
 	{
 		// Initialize the base class properties
@@ -33,7 +38,12 @@ ref class aSmartCandlestick : public aCandlestick
 		this->valleyValue = Double::NaN;
 	}
 
-	// isPeak() function to determine if the candlestick is a peak based on its high value compared to its immediate neighbors
+	/// <summary>
+	/// isPeak() function to determine if the candlestick is a peak based on its high value compared to its immediate neighbors
+	/// </summary>
+	/// <param name="prev">the candlestick before this one</param>
+	/// <param name="next">the candlestick after this one</param>
+	/// <returns>true when this candlestick's high is above the high of both neighbors</returns>
 	bool isPeak(aSmartCandlestick^ prev, aSmartCandlestick^ next)
 	{
 		if (prev == nullptr || next == nullptr)
@@ -43,7 +53,12 @@ ref class aSmartCandlestick : public aCandlestick
 		return (this->high > prev->high && this->high > next->high);
 	}
 
-	// isValley() function to determine if the candlestick is a valley based on its low value compared to its immediate neighbors
+	/// <summary>
+	/// isValley() function to determine if the candlestick is a valley based on its low value compared to its immediate neighbors
+	/// </summary>
+	/// <param name="prev">the candlestick before this one</param>
+	/// <param name="next">the candlestick after this one</param>
+	/// <returns>true when this candlestick's low is below the low of both neighbors</returns>
 	bool isValley(aSmartCandlestick^ prev, aSmartCandlestick^ next)
 	{
 		if (prev == nullptr || next == nullptr)

@@ -19,13 +19,24 @@ namespace StockProject1 {
 	public ref class FormSelector : public System::Windows::Forms::Form
 	{
 	public:
+		/// <summary>
+		/// default constructor, builds the controls and points the open file dialog at the Stock Data folder
+		/// </summary>
 		FormSelector(void)
 		{
 			InitializeComponent();
 			//
 			//TODO: Add the constructor code here
 			//
+			// the folder the dialog opens in must not depend on the folder the program was started from
+			findStockDataFolder();
 		}
+		/// <summary>
+		/// constructor that also reads and filters a file, not used by the application
+		/// </summary>
+		/// <param name="filePath">the CSV file to read the candlesticks from</param>
+		/// <param name="startDate">the first date to keep</param>
+		/// <param name="endDate">the last date to keep</param>
 		FormSelector(String^ filePath, DateTime startDate, DateTime endDate)
 		{
 			InitializeComponent();
@@ -158,11 +169,42 @@ namespace StockProject1 {
 
 		}
 #pragma endregion
-	private: System::Void buttonSelectFile_Click(System::Object^ sender, System::EventArgs^ e) 
+	/// <summary>
+	/// points the open file dialog at the nearest "Stock Data" folder, looking next to the program first and then in every folder above it
+	/// </summary>
+	private: System::Void findStockDataFolder()
+	{
+		// start in the folder the program is running from
+		String^ folder = System::Windows::Forms::Application::StartupPath;
+		// go up one folder at a time until one of them has a Stock Data folder inside it
+		while (folder != nullptr)
+		{
+			String^ candidate = Path::Combine(folder, "Stock Data");
+			if (Directory::Exists(candidate))
+			{
+				openFileDialogSelectFile->InitialDirectory = candidate;
+				return;
+			}
+			// GetDirectoryName gives nullptr when there is no folder above, which ends the loop
+			folder = Path::GetDirectoryName(folder);
+		}
+	}
+
+	/// <summary>
+	/// shows the open file dialog
+	/// </summary>
+	/// <param name="sender">the Select File button</param>
+	/// <param name="e">the click event data</param>
+	private: System::Void buttonSelectFile_Click(System::Object^ sender, System::EventArgs^ e)
 	{
 		openFileDialogSelectFile->ShowDialog();
 	}
-		
+
+	/// <summary>
+	/// opens one chart form for every file the user selected, using the dates from the date pickers
+	/// </summary>
+	/// <param name="sender">the open file dialog</param>
+	/// <param name="e">lets the handler cancel the dialog</param>
 	private: System::Void openFileDialogSelectFile_FileOk(System::Object^ sender, System::ComponentModel::CancelEventArgs^ e) 
 	{
 		// get the selected file path

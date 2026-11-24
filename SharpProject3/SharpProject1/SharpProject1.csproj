@@ -52,6 +52,9 @@
     <Compile Include="aCandlestick.cs" />
     <Compile Include="aSmartCandlestick.cs" />
     <Compile Include="candlestickUtilities.cs" />
+    <Compile Include="extremeKind.cs" />
+    <Compile Include="aTrendRectangle.cs" />
+    <Compile Include="trendRectangleRenderer.cs" />
     <Compile Include="FormSelector.cs">
       <SubType>Form</SubType>
     </Compile>
