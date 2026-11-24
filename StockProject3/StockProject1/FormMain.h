@@ -1,6 +1,11 @@
+// The assignment PDF asks that we disclose any AI use for the project. 
+// I used Claude to assist me in understanding how exactly to measure the distance values for where the user was clicking in relation to the points on the chart. 
+
 #pragma once
 #include "aCandlestick.h"
 #include "candlestickUtilities.h"
+#include "aTrendRectangle.h"
+#include "trendRectangleRenderer.h"
 
 namespace CppCLRWinFormsProject {
 
@@ -19,6 +24,9 @@ namespace CppCLRWinFormsProject {
 	public ref class FormMain : public System::Windows::Forms::Form
 	{
 	public:
+		/// <summary>
+		/// default constructor, only builds the controls
+		/// </summary>
 		FormMain(void)
 		{
 			InitializeComponent();
@@ -26,30 +34,20 @@ namespace CppCLRWinFormsProject {
 			//TODO: Add the constructor code here
 			//
 		}
-		// new constructor, pass the individual file path, the start date, and the end date to the new form
+		/// <summary>
+		/// new constructor, pass the individual file path, the start date, and the end date to the new form
+		/// </summary>
+		/// <param name="filePath">the CSV file to read the candlesticks from</param>
+		/// <param name="startDate">the first date to show</param>
+		/// <param name="endDate">the last date to show</param>
 		FormMain(String^ filePath, DateTime startDate, DateTime endDate)
 		{
 			InitializeComponent();
 			// read candlestick data from the CSV file
 			candlestickList = candlestickUtilities::readCandlesticksFromCsv(filePath);
 
-			// filter the candlestick data based on the selected date range
-			System::Collections::Generic::List<aCandlestick^>^ filteredData = candlestickUtilities::filterCandlestickData(candlestickList, startDate, endDate);
-			// convert the old filtered data to the new smart candlestick
-			System::Collections::Generic::List<aSmartCandlestick^>^ smartFilteredData = candlestickUtilities::buildSmartCandlesticks(filteredData);
-			// send the updated list to the DataGridView for display
-			canldestickDataGridView->DataSource = smartFilteredData;
-
-			// Set the X & Y values of the new dot series to show peaks and valleys. 
-			chartStockData->Series["Dots"]->XValueMember = "date";
-			chartStockData->Series["Dots"]->YValueMembers = "peakValue";
-			// Set the X & Y values of the valley series.
-			chartStockData->Series["Valleys"]->XValueMember = "date";
-			chartStockData->Series["Valleys"]->YValueMembers = "valleyValue";
-
-			// Bind the chart to the list of candlesticks (DataSource should be a list or table, not a filename)
-			chartStockData->DataSource = gcnew System::ComponentModel::BindingList<aSmartCandlestick^>(smartFilteredData);
-			chartStockData->DataBind();
+			// filter the candlesticks to the date range, find the peaks and valleys, and show them in the grid and the chart
+			displayCandlesticks(startDate, endDate);
 		}
 
 	protected:
@@ -71,10 +69,17 @@ namespace CppCLRWinFormsProject {
 	private: System::Windows::Forms::Label^ label2;
 	private: System::Windows::Forms::DataGridView^ canldestickDataGridView;
 	private: System::Windows::Forms::Button^ redisplayButton;
+	private: System::Windows::Forms::TextBox^ textBoxTouches;
+	private: System::Windows::Forms::Label^ labelTouches;
 	// Lists to hold candlestick data
 	private: List<aCandlestick^>^ candlestickList = gcnew List<aCandlestick^>();
 	private: List<aCandlestick^>^ filteredCandlestickList = gcnew List<aCandlestick^>();
 	private: System::Windows::Forms::DataVisualization::Charting::Chart^ chartStockData;
+	private: System::Collections::Generic::List<aSmartCandlestick^>^ smartFilteredData;
+
+	// the rectangle the user is drawing or has drawn (nullptr when there is none), and the object that draws it
+	private: aTrendRectangle^ trendRectangle = nullptr;
+	private: trendRectangleRenderer^ renderer = gcnew trendRectangleRenderer();
 
 
 
@@ -90,8 +95,6 @@ namespace CppCLRWinFormsProject {
 		System::ComponentModel::Container ^components;
 
 		bool mouseDown = false;
-		System::Drawing::Point mouseDownPoint;
-		System::Drawing::Point mousePoint;
 
 
 #pragma region Windows Form Designer generated code
@@ -118,6 +121,8 @@ namespace CppCLRWinFormsProject {
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->canldestickDataGridView = (gcnew System::Windows::Forms::DataGridView());
 			this->redisplayButton = (gcnew System::Windows::Forms::Button());
+			this->textBoxTouches = (gcnew System::Windows::Forms::TextBox());
+			this->labelTouches = (gcnew System::Windows::Forms::Label());
 			this->chartStockData = (gcnew System::Windows::Forms::DataVisualization::Charting::Chart());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->canldestickDataGridView))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->chartStockData))->BeginInit();
@@ -213,7 +218,25 @@ namespace CppCLRWinFormsProject {
 			this->redisplayButton->Text = L"Redisplay";
 			this->redisplayButton->UseVisualStyleBackColor = true;
 			this->redisplayButton->Click += gcnew System::EventHandler(this, &FormMain::button1_Click);
-			// 
+			//
+			// textBoxTouches
+			//
+			this->textBoxTouches->Location = System::Drawing::Point(1100, 585);
+			this->textBoxTouches->Name = L"textBoxTouches";
+			this->textBoxTouches->ReadOnly = true;
+			this->textBoxTouches->Size = System::Drawing::Size(100, 20);
+			this->textBoxTouches->TabIndex = 8;
+			this->textBoxTouches->Text = L"0";
+			//
+			// labelTouches
+			//
+			this->labelTouches->AutoSize = true;
+			this->labelTouches->Location = System::Drawing::Point(1100, 560);
+			this->labelTouches->Name = L"labelTouches";
+			this->labelTouches->Size = System::Drawing::Size(47, 13);
+			this->labelTouches->TabIndex = 9;
+			this->labelTouches->Text = L"Touches";
+			//
 			// chartStockData
 			// 
 			chartArea5->AxisY->IsStartedFromZero = false;
@@ -253,8 +276,7 @@ namespace CppCLRWinFormsProject {
 			series11->IsXValueIndexed = true;
 			series11->Legend = L"Legend1";
 			series11->MarkerBorderWidth = 8;
-			series11->MarkerColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(255)), static_cast<System::Int32>(static_cast<System::Byte>(128)),
-				static_cast<System::Int32>(static_cast<System::Byte>(0)));
+			series11->MarkerColor = System::Drawing::Color::Yellow;
 			series11->MarkerStyle = System::Windows::Forms::DataVisualization::Charting::MarkerStyle::Circle;
 			series11->Name = L"Dots";
 			series12->ChartArea = L"ChartStockData";
@@ -284,6 +306,8 @@ namespace CppCLRWinFormsProject {
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1284, 677);
+			this->Controls->Add(this->labelTouches);
+			this->Controls->Add(this->textBoxTouches);
 			this->Controls->Add(this->chartStockData);
 			this->Controls->Add(this->redisplayButton);
 			this->Controls->Add(this->canldestickDataGridView);
@@ -300,7 +324,40 @@ namespace CppCLRWinFormsProject {
 
 		}
 #pragma endregion
-		// read candlestick data from a CSV file and display to DataGridView
+		/// <summary>
+		/// filters the loaded candlesticks to the date range, finds the peaks and valleys, and shows the result in the grid and the chart
+		/// </summary>
+		/// <param name="startDate">the first date to show</param>
+		/// <param name="endDate">the last date to show</param>
+		private: System::Void displayCandlesticks(DateTime startDate, DateTime endDate)
+		{
+			// filter the candlestick data based on the selected date range
+			System::Collections::Generic::List<aCandlestick^>^ filteredData = candlestickUtilities::filterCandlestickData(candlestickList, startDate, endDate);
+			// convert the filtered data to smart candlesticks so the peaks and valleys are recalculated for the new range
+			smartFilteredData = candlestickUtilities::buildSmartCandlesticks(filteredData);
+			// the candle numbers inside an old rectangle belong to the old list, so the old rectangle is thrown away
+			trendRectangle = nullptr;
+			// send the updated list to the DataGridView for display
+			canldestickDataGridView->DataSource = smartFilteredData;
+
+			// Set the X & Y values of the dot series to show peaks and valleys.
+			chartStockData->Series["Dots"]->XValueMember = "date";
+			chartStockData->Series["Dots"]->YValueMembers = "peakValue";
+			// Set the X & Y values of the valley series.
+			chartStockData->Series["Valleys"]->XValueMember = "date";
+			chartStockData->Series["Valleys"]->YValueMembers = "valleyValue";
+
+			// Bind the chart to the list of smart candlesticks (DataSource should be a list or table, not a filename)
+			chartStockData->DataSource = gcnew System::ComponentModel::BindingList<aSmartCandlestick^>(smartFilteredData);
+			// Refresh the chart to reflect the new data
+			chartStockData->DataBind();
+		}
+
+		/// <summary>
+		/// read candlestick data from a CSV file and display to DataGridView
+		/// </summary>
+		/// <param name="sender">the open file dialog</param>
+		/// <param name="e">lets the handler cancel the dialog</param>
 		private: System::Void openFileDialog1_FileOk(System::Object^ sender, System::ComponentModel::CancelEventArgs^ e)
 		{
 			// get the selected file path
@@ -314,20 +371,8 @@ namespace CppCLRWinFormsProject {
 			DateTime startDate = dateTimePickerStartDate->Value;
 			DateTime endDate = dateTimePickerEndDate->Value;
 
-			// filter the candlestick data based on the selected date range
-			System::Collections::Generic::List<aCandlestick^>^ filteredData = candlestickUtilities::filterCandlestickData(candlestickList, startDate, endDate);
-			// convert the old filtered data to the new smart candlestick
-			System::Collections::Generic::List<aSmartCandlestick^>^ smartFilteredData = candlestickUtilities::buildSmartCandlesticks(filteredData);
-			// send the updated list to the DataGridView for display
-			canldestickDataGridView->DataSource = smartFilteredData;
-
-			// Set the X & Y values of the new dot series to show peaks and valleys. 
-			chartStockData->Series["Dots"]->XValueMember = "date";
-			chartStockData->Series["Dots"]->YValueMembers = "peakValue";
-
-			// Bind the chart to the list of candlesticks (DataSource should be a list or table, not a filename)
-			chartStockData->DataSource = gcnew System::ComponentModel::BindingList<aSmartCandlestick^>(smartFilteredData);
-			chartStockData->DataBind();
+			// filter the candlesticks to the date range, find the peaks and valleys, and show them in the grid and the chart
+			displayCandlesticks(startDate, endDate);
 
 			// find the number of files the user selected
 			int numFiles = openFileDialogSelectFile->FileNames->Length;
@@ -345,83 +390,153 @@ namespace CppCLRWinFormsProject {
 			}
 		}
 
-		// mistaken event handler for label click, not used in this application
+		/// <summary>
+		/// mistaken event handler for label click, not used in this application
+		/// </summary>
+		/// <param name="sender">the label</param>
+		/// <param name="e">the click event data</param>
 		private: System::Void label1_Click(System::Object^ sender, System::EventArgs^ e) 
 		{
 
 		}
 
-		// filter the candlestick data based on the selected start and end dates and redisplay
+		/// <summary>
+		/// filter the candlestick data based on the selected start and end dates and redisplay
+		/// </summary>
+		/// <param name="sender">the Redisplay button</param>
+		/// <param name="e">the click event data</param>
 		private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e)
 		{
 			// initialize start and end dates from the DateTimePickers
 			DateTime startDate = dateTimePickerStartDate->Value;
 			DateTime endDate = dateTimePickerEndDate->Value;
 
-			// filter the candlestick data based on the selected date range
-			System::Collections::Generic::List<aCandlestick^>^ filteredData = candlestickUtilities::filterCandlestickData(candlestickList, startDate, endDate);
-			// convert the filtered data to smart candlesticks so the peaks and valleys are recalculated for the new range
-			System::Collections::Generic::List<aSmartCandlestick^>^ smartFilteredData = candlestickUtilities::buildSmartCandlesticks(filteredData);
-			// send the updated list to the DataGridView for display
-			canldestickDataGridView->DataSource = smartFilteredData;
-
-			// Set the X & Y values of the dot series to show peaks and valleys.
-			chartStockData->Series["Dots"]->XValueMember = "date";
-			chartStockData->Series["Dots"]->YValueMembers = "peakValue";
-			// Set the X & Y values of the valley series.
-			chartStockData->Series["Valleys"]->XValueMember = "date";
-			chartStockData->Series["Valleys"]->YValueMembers = "valleyValue";
-
-			// Bind the chart to the list of smart candlesticks (DataSource should be a list or table, not a filename)
-			chartStockData->DataSource = gcnew System::ComponentModel::BindingList<aSmartCandlestick^>(smartFilteredData);
-			// Refresh the chart to reflect the new data
-			chartStockData->DataBind();
+			// filter the candlesticks to the date range, find the peaks and valleys, and show them in the grid and the chart
+			displayCandlesticks(startDate, endDate);
 		}
 
 		// function definitions in cpp file
+	/// <summary>
+	/// click on the chart, not used in this application (the rectangle uses the mouse down, move and up events)
+	/// </summary>
+	/// <param name="sender">the chart</param>
+	/// <param name="e">the click event data</param>
 	private: System::Void chartStockData_Click(System::Object^ sender, System::EventArgs^ e) 
 	{
 
 	}
 
-	private: System::Void chartStockData_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) 
+	/// <summary>
+	/// turns a mouse X position into a candle position counting from 0 (the chart counts candles from 1, so 1 is subtracted)
+	/// </summary>
+	/// <param name="mouseX">the mouse X position inside the chart</param>
+	/// <returns>the candle position, which is not rounded</returns>
+	private: double candlePositionAt(int mouseX)
 	{
+		// Get the primary ChartArea
+		System::Windows::Forms::DataVisualization::Charting::ChartArea^ area = chartStockData->ChartAreas[0];
+		// the chart refuses a position outside of itself and the mouse can leave the chart while dragging, so the mouse X is kept inside the chart
+		mouseX = Math::Max(0, Math::Min(mouseX, chartStockData->Width - 1));
+		// Convert the mouse click position to chart values
+		return area->AxisX->PixelPositionToValue(mouseX) - 1;
+	}
+
+	/// <summary>
+	/// turns a mouse Y position into a price
+	/// </summary>
+	/// <param name="mouseY">the mouse Y position inside the chart</param>
+	/// <returns>the price at that height</returns>
+	private: double priceAt(int mouseY)
+	{
+		// Get the primary ChartArea
+		System::Windows::Forms::DataVisualization::Charting::ChartArea^ area = chartStockData->ChartAreas[0];
+		// the chart refuses a position outside of itself and the mouse can leave the chart while dragging, so the mouse Y is kept inside the chart
+		mouseY = Math::Max(0, Math::Min(mouseY, chartStockData->Height - 1));
+		// Convert the mouse click position to chart values
+		return area->AxisY->PixelPositionToValue(mouseY);
+	}
+
+	/// <summary>
+	/// pressing the mouse starts a new rectangle on the peak or valley nearest the mouse
+	/// </summary>
+	/// <param name="sender">the chart</param>
+	/// <param name="e">the mouse position</param>
+	private: System::Void chartStockData_MouseDown(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
+	{
+		// without candlesticks there is nothing to start on
+		if (smartFilteredData == nullptr)
+		{
+			return;
+		}
+
+		// snap the start corner to the peak or valley nearest the mouse, kind is filled in with Peak or Valley
+		extremeKind kind = extremeKind::Peak;
+		aSmartCandlestick^ startCandle = candlestickUtilities::findNearestExtreme(smartFilteredData, candlePositionAt(e->X), priceAt(e->Y), kind);
+		// a list with no peaks or valleys has nothing to snap to
+		if (startCandle == nullptr)
+		{
+			return;
+		}
+
+		trendRectangle = gcnew aTrendRectangle(startCandle, kind);
 		mouseDown = true;
-		mouseDownPoint = e->Location;
-		mousePoint = e->Location;
 		chartStockData->Invalidate();
 	}
-	private: System::Void chartStockData_MouseUp(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) 
+
+	/// <summary>
+	/// releasing the mouse leaves the rectangle on screen, and it is drawn solid instead of dashed
+	/// </summary>
+	/// <param name="sender">the chart</param>
+	/// <param name="e">the mouse position</param>
+	private: System::Void chartStockData_MouseUp(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
 	{
 		mouseDown = false;
+		chartStockData->Invalidate();
 	}
-	private: System::Void chartStockData_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e) 
+
+	/// <summary>
+	/// while the mouse is down, the end corner of the rectangle follows the mouse
+	/// </summary>
+	/// <param name="sender">the chart</param>
+	/// <param name="e">the mouse position</param>
+	private: System::Void chartStockData_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
 	{
 		if (mouseDown)
 		{
-			mousePoint = e->Location;
+			// the candle number must stay inside the list, because the mouse can leave the chart while dragging
+			int index = (int)Math::Round(candlePositionAt(e->X));
+			if (index < 0)
+			{
+				index = 0;
+			}
+			if (index > smartFilteredData->Count - 1)
+			{
+				index = smartFilteredData->Count - 1;
+			}
+			trendRectangle->setEnd(index, priceAt(e->Y));
 			chartStockData->Invalidate();
 		}
 	}
 
 	// while dragging, if the trend is valid, make the rectangle green (if it's an uptrend), and red if it's a down trend. 
 	// while dragging, the rectangle should be dashed, as soon as mouseUp occurs, the rectangle should be solid.
+	// the renderer draws the rectangle during the chart's paint event, and an invalid rectangle is drawn black
+	/// <summary>
+	/// draws the rectangle with its ratio lines and dots, and shows the number of touches
+	/// </summary>
+	/// <param name="sender">the chart</param>
+	/// <param name="e">the graphics to draw on</param>
 	private: System::Void FormMain_Paint(System::Object^ sender, System::Windows::Forms::PaintEventArgs^ e)
 	{
-		if (mouseDown)
+		// the number of touches is 0 when there is no rectangle, or when the rectangle is invalid
+		int touches = 0;
+		// draw only when there is a rectangle, draw returns the number of touches
+		if (trendRectangle != nullptr)
 		{
-			// Draw a rectangle from mouseDownPoint to mousePoint
-			int x = Math::Min(mouseDownPoint.X, mousePoint.X);
-			int y = Math::Min(mouseDownPoint.Y, mousePoint.Y);
-			int width = Math::Abs(mouseDownPoint.X - mousePoint.X);
-			int height = Math::Abs(mouseDownPoint.Y - mousePoint.Y);
-			// Determine the trend based on the Y coordinates of the mouse points
-			Color rectColor = (mousePoint.Y < mouseDownPoint.Y) ? Color::Green : Color::Red;
-			Pen^ pen = gcnew Pen(rectColor, 2);
-			e->Graphics->DrawRectangle(pen, x, y, width, height);
-			// add a debug print to the console to figure out why the rectangle is not being drawn
-			
+			touches = renderer->draw(e->Graphics, chartStockData, trendRectangle, smartFilteredData, mouseDown);
 		}
+		// show the number of touches in the textbox under the chart
+		textBoxTouches->Text = touches.ToString();
 	}
 };
 

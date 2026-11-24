@@ -14,7 +14,9 @@ namespace SharpProject1
         public double close { get; set; }
         public ulong volume { get; set; }
 
-        // default constructor, add initialize components to the constructor
+        /// <summary>
+        /// default constructor, add initialize components to the constructor
+        /// </summary>
         public aCandlestick()
         {
             date = DateTime.MinValue;
@@ -25,7 +27,15 @@ namespace SharpProject1
             volume = 0;
         }
 
-        // additional constructors
+        /// <summary>
+        /// additional constructors
+        /// </summary>
+        /// <param name="dateVal">the date of the candlestick</param>
+        /// <param name="openVal">the opening price</param>
+        /// <param name="highVal">the highest price</param>
+        /// <param name="lowVal">the lowest price</param>
+        /// <param name="closeVal">the closing price</param>
+        /// <param name="volumeVal">the volume traded</param>
         public aCandlestick(DateTime dateVal, double openVal, double highVal, double lowVal, double closeVal, ulong volumeVal)
         {
             date = dateVal;
@@ -36,7 +46,10 @@ namespace SharpProject1
             volume = volumeVal;
         }
 
-        // constructor from another candlestick (copy)
+        /// <summary>
+        /// constructor from another candlestick (copy)
+        /// </summary>
+        /// <param name="source">the candlestick to copy</param>
         public aCandlestick(aCandlestick source)
         {
             if (source == null)
@@ -59,7 +72,10 @@ namespace SharpProject1
             }
         }
 
-        // constructor from a CSV line
+        /// <summary>
+        /// constructor from a CSV line
+        /// </summary>
+        /// <param name="csvLine">one line of a CSV file</param>
         public aCandlestick(string csvLine)
         {
             char[] separator = new char[] { ',', '"' };

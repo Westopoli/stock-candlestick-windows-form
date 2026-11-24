@@ -12,13 +12,29 @@ public:
 	property double close;
 	property unsigned long long volume;
 
-	// default constructor, add initialize components to the constructor
+	/// <summary>
+	/// default constructor, add initialize components to the constructor
+	/// </summary>
 	aCandlestick();
-	// additional constructors
+	/// <summary>
+	/// additional constructors
+	/// </summary>
+	/// <param name="dateVal">the date of the candlestick</param>
+	/// <param name="openVal">the opening price</param>
+	/// <param name="highVal">the highest price</param>
+	/// <param name="lowVal">the lowest price</param>
+	/// <param name="closeVal">the closing price</param>
+	/// <param name="volumeVal">the volume traded</param>
 	aCandlestick(DateTime dateVal, double openVal, double highVal, double lowVal, double closeVal, unsigned long long volumeVal);
-	// constructor from another candlestick (copy)
+	/// <summary>
+	/// constructor from another candlestick (copy)
+	/// </summary>
+	/// <param name="source">the candlestick to copy</param>
 	aCandlestick(aCandlestick^ source);
-	// constructor from a CSV line
+	/// <summary>
+	/// constructor from a CSV line
+	/// </summary>
+	/// <param name="csvLine">one line of a CSV file</param>
 	aCandlestick(String^ csvLine);
 };
 

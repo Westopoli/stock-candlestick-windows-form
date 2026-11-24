@@ -15,13 +15,24 @@ namespace SharpProject1
     /// </summary>
     public partial class FormSelector : System.Windows.Forms.Form
     {
+        /// <summary>
+        /// default constructor, builds the controls and points the open file dialog at the Stock Data folder
+        /// </summary>
         public FormSelector()
         {
             InitializeComponent();
             //
             //TODO: Add the constructor code here
             //
+            // the folder the dialog opens in must not depend on the folder the program was started from
+            findStockDataFolder();
         }
+        /// <summary>
+        /// constructor that also reads and filters a file, not used by the application
+        /// </summary>
+        /// <param name="filePath">the CSV file to read the candlesticks from</param>
+        /// <param name="startDate">the first date to keep</param>
+        /// <param name="endDate">the last date to keep</param>
         public FormSelector(string filePath, DateTime startDate, DateTime endDate)
         {
             InitializeComponent();
@@ -42,11 +53,42 @@ namespace SharpProject1
         private List<aCandlestick> filteredCandlestickList = new List<aCandlestick>();
         private System.Windows.Forms.DataVisualization.Charting.Chart chartStockData;
 
+        /// <summary>
+        /// points the open file dialog at the nearest "Stock Data" folder, looking next to the program first and then in every folder above it
+        /// </summary>
+        private void findStockDataFolder()
+        {
+            // start in the folder the program is running from
+            string folder = System.Windows.Forms.Application.StartupPath;
+            // go up one folder at a time until one of them has a Stock Data folder inside it
+            while (folder != null)
+            {
+                string candidate = Path.Combine(folder, "Stock Data");
+                if (Directory.Exists(candidate))
+                {
+                    openFileDialogSelectFile.InitialDirectory = candidate;
+                    return;
+                }
+                // GetDirectoryName gives null when there is no folder above, which ends the loop
+                folder = Path.GetDirectoryName(folder);
+            }
+        }
+
+        /// <summary>
+        /// shows the open file dialog
+        /// </summary>
+        /// <param name="sender">the Select File button</param>
+        /// <param name="e">the click event data</param>
         private void buttonSelectFile_Click(object sender, EventArgs e)
         {
             openFileDialogSelectFile.ShowDialog();
         }
 
+        /// <summary>
+        /// opens one chart form for every file the user selected, using the dates from the date pickers
+        /// </summary>
+        /// <param name="sender">the open file dialog</param>
+        /// <param name="e">lets the handler cancel the dialog</param>
         private void openFileDialogSelectFile_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
         {
             // get the selected file path

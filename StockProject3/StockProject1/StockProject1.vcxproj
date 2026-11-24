@@ -133,6 +133,9 @@
     <ClInclude Include="aCandlestick.h" />
     <ClInclude Include="aSmartCandlestick.h" />
     <ClInclude Include="candlestickUtilities.h" />
+    <ClInclude Include="extremeKind.h" />
+    <ClInclude Include="aTrendRectangle.h" />
+    <ClInclude Include="trendRectangleRenderer.h" />
     <ClInclude Include="FormMain.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -147,6 +150,8 @@
     <ClCompile Include="aSmartCandlestick.cpp" />
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="candlestickUtilities.cpp" />
+    <ClCompile Include="aTrendRectangle.cpp" />
+    <ClCompile Include="trendRectangleRenderer.cpp" />
     <ClCompile Include="CppCLR_WinFormsProject.cpp" />
     <ClCompile Include="FormMain.cpp" />
     <ClCompile Include="FormSelector.cpp" />
